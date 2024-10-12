@@ -6,8 +6,12 @@
   display: inline-block;
   vertical-align: baseline; /*compensate for lower height */
   position: relative;
-  font-size: .85em; /* reduce to avoid some breaks */
+  font-size: .90em; /* reduce to avoid some breaks */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
+
 .hugo-cite-group
   .hugo-cite-citation {
     visibility: hidden;
@@ -46,4 +50,36 @@
   overflow: hidden;
   position: absolute;
   width: 1px;
+}
+
+
+/* 允许引用在适当的位置换行 */
+.hugo-cite-intext,
+.hugo-cite-intext-t {
+    display: inline;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* 使括号保持与引用内容在一起 */
+.hugo-cite-intext::before,
+.hugo-cite-intext::after,
+.hugo-cite-intext-t::before,
+.hugo-cite-intext-t::after {
+    white-space: wrap;
+}
+
+/* 允许在逗号和分号后换行 */
+.hugo-cite-intext span::after,
+.hugo-cite-intext-t span::after {
+    white-space: normal;
+}
+
+/* 为长引用添加一个小的视觉提示 */
+.hugo-cite-intext,
+.hugo-cite-intext-t {
+    border-bottom: 1px dotted #ccc;
+    padding-bottom: 1px;
 }

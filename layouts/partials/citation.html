@@ -1,0 +1,38 @@
+{{- /* Get data from front matter */ -}}
+{{- $author := .Page.Params.author | default "Unknown Author" -}}
+{{- $title := .Page.Params.title | default "Untitled" -}}
+{{- $dateParam := .Page.Params.date | default .Page.Date -}}
+{{- $journal := .Page.Params.journal | default "Unknown Journal" -}}
+{{- $url := .Site.BaseURL | default "" -}}
+{{- $relativeURL := .RelPermalink -}}
+{{- $fullURL := printf "%s%s" $url (strings.TrimPrefix "/" $relativeURL) -}}
+
+{{- /* Parse date */ -}}
+{{- $parsedDate := time $dateParam -}}
+{{- $monthYear := dateFormat "Jan 2006" $parsedDate -}}
+{{- $year := dateFormat "2006" $parsedDate -}}
+{{- $month := dateFormat "Jan" $parsedDate -}}
+
+{{- /* Generate BibTeX key */ -}}
+{{- $authorLastName := index (split $author " ") 0 -}}
+{{- $titleWords := split $title " " -}}
+{{- $titleFirstWord := index $titleWords 0 | lower -}}
+{{- $bibtexKey := printf "%s%s%s" (lower $authorLastName) $year $titleFirstWord -}}
+
+{{- /* Generate citation line */ -}}
+<p><strong>Cited as:</strong></p>
+<blockquote>
+  {{ $author }}. ({{ $monthYear }}). {{ $title }}. {{ $journal }}. <a href="{{ $fullURL }}">{{ $fullURL }}</a>
+</blockquote>
+
+{{- /* Generate BibTeX code block */ -}}
+<pre><code class="language-bibtex">
+@article{ {{ $bibtexKey }},
+  title   = "{{ $title }}",
+  author  = "{{ $author }}",
+  journal = "{{ $journal }}",
+  year    = "{{ $year }}",
+  month   = "{{ $month }}",
+  url     = "{{ $fullURL }}"
+}
+</code></pre>

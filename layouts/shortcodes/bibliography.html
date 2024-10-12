@@ -1,5 +1,4 @@
 {{/*
-
   This shortcode renders entries from a CSL-JSON file.
 
   Examples:
@@ -9,51 +8,36 @@
 
   {{< bibliography >}}
 
-
   2. Render all works from a specified JSON file,
-     located *inside* the Hugo project directory:
+     located inside the Hugo project directory:
 
-  {{< bibliography "path/to/bib.json" >}}
+  {{< bibliography "content/posts/bib.json" >}}
 
-
-  3. Render only cited works cited in the page
+  3. Render only works cited in the page
      (with the use of `{{< cite >}}` shortcode):
 
   {{< bibliography cited >}}
 
-
   4. Combine both options:
 
-  {{< bibliography "path/to/bib.json" cited >}}
-
+  {{< bibliography "content/posts/bib.json" cited >}}
 
   5. You can also use named params for clarity:
 
-  {{< bibliography src="path/to/bib.json" cited="true" >}}
-
-
-  6. Bibliography file may be located at a URL, thanks to Hugo’s
-     `getJSON` function.
-     *Note however that this method may have some drawbacks if you are reloading
-     often, see the Hugo docs regarding potential issues:*
-     https://gohugo.io/templates/data-templates/#livereload-with-data-files
-
-  {{< bibliography "https://example.com/my/bib.json" >}}
-
+  {{< bibliography src="content/posts/bib.json" cited="true" >}}
 
   The first positional param points to the bibliography file.
   It is optional if you have a `bib.json` in a page leaf bundle.
   It must be relative to the root of the Hugo project.
 
-  By default, all entries of the bibliography file are rendered; you can chose
+  By default, all entries of the bibliography file are rendered; you can choose
   to render only those cited on the page (using the {{< cite >}} shortcode) by
   including the `cited` parameter (or `cited="true"` if using named params).
-
 */}}
 
 {{- $src := "" }}
 {{- $citedOnly := false }}
-{{- $references := false }}
+{{- $references := dict }}
 
 {{- if .IsNamedParams }}
   {{- with .Get "src" }}{{ $src = . }}{{ end }}
@@ -76,23 +60,31 @@
 {{- else }}{{/* Render the full bibliography */}}
 
   {{- $bibliographyPath := "" }}
-  {{- $pageResource := $.Page.Resources.GetMatch "*bib*.json" -}}
 
-  {{/* Specified in shortcode */}}
-  {{- if gt (len $src) 1 }}
-  {{- $bibliographyPath = $src }}
+  {{/* 1. Specified in shortcode */}}
+  {{- if gt (len $src) 0 }}
+    {{- $bibliographyPath = $src }}
 
   {{/* 2. Specified in page front-matter */}}
   {{- else if $.Page.Params.bibFile }}
-  {{- $bibliographyPath = $.Page.Params.bibFile }}
+    {{- $bibliographyPath = $.Page.Params.bibFile }}
 
   {{/* 3. Page resource bib.json */}}
-  {{- else if $pageResource }}
-  {{- $constructedBibResource := printf "content/%s%s" $.Page.File.Dir $pageResource.Name }}
-  {{- $bibliographyPath = $constructedBibResource }}
+  {{- else }}
+    {{- $pageResource := $.Page.Resources.GetMatch "*bib*.json" -}}
+    {{- if $pageResource }}
+      {{- $bibliographyPath = $pageResource.RelPermalink }}
+    {{- else }}
+      {{- errorf "No bibliography file found" }}
+    {{- end }}
   {{- end }}
 
-  {{- $references = getJSON $bibliographyPath }}
+  {{- if $bibliographyPath }}
+    {{- $jsonContent := readFile $bibliographyPath }}
+    {{- $references = transform.Unmarshal $jsonContent }}
+  {{- else }}
+    {{- errorf "No bibliography file specified or found." }}
+  {{- end }}
 
 {{- end }}
 

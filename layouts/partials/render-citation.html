@@ -1,0 +1,76 @@
+{{/* Partial template for rendering a citation */}}
+{{- $key := .key }}
+{{- $keyIndex := .keyIndex }}
+{{- $reference := .reference }}
+{{- $suppressAuthor := .suppressAuthor }}
+{{- $format := .format }}
+{{- $pages := .pages }}
+{{- $partialPath := .partialPath }}
+{{- $currentPages := "" }}
+{{- if lt $keyIndex (len $pages) }}
+  {{- $currentPages = index $pages $keyIndex }}
+{{- end }}
+{{- /* Add to the collection of cited references */}}
+{{- $.Page.Scratch.SetInMap "citedBib" $key $reference -}}
+<span class="hugo-cite-group" style="display: inline-block; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
+  <a href="#{{ $key | urlize }}" style="text-decoration: none; border-bottom: 1px dotted #ccc;">
+    <span class="visually-hidden">Citation: </span>
+    {{- if not $suppressAuthor -}}
+      {{- $displayAuthors := $reference.author -}}
+      {{- if not $reference.author }}
+        {{- $displayAuthors = $reference.editor -}}
+      {{- end }}
+      {{- if not $displayAuthors }}
+        <span rel="noauthor">
+          {{- i18n "apa_no_author_abbr" | default "n.a." | upper -}}
+        </span>
+      {{- else }}
+        {{- $authorLen := len $displayAuthors }}
+        {{- range $authorIndex, $author := first 2 $displayAuthors }}
+          <span itemprop="author" itemscope itemtype="https://schema.org/Person">
+            {{- with $author.given }}
+              <meta itemprop="givenName" content="{{ . }}">
+            {{- end }}
+            {{- with $author.family }}
+              <span itemprop="familyName">{{ . | markdownify }}</span><wbr>
+            {{- end }}
+          </span>
+          {{- if and (eq $authorIndex 0) (gt $authorLen 2) -}}
+            ,<wbr>&#32;
+          {{- end }}
+          {{- if and (eq $authorLen 2) (eq $authorIndex 0) -}}<wbr>&#32;&amp;&#32;{{- end }}
+        {{- end }}
+        {{- if gt $authorLen 2 }}
+          <em>&amp; al.</em>
+        {{- end }}
+      {{- end }}
+      {{- if eq $format "p" }},<wbr>&#32;{{- else }}<wbr>&#32;{{- end }}
+    {{- end }}
+    {{- /* Year */}}
+    <span style="white-space: nowrap;">
+    {{- if and (isset $reference "issued") (isset $reference.issued "date-parts") -}}
+      {{- $dateParts := index $reference.issued "date-parts" }}
+      {{- if gt (len $dateParts) 0 }}
+        {{- $year := index (index $dateParts 0) 0 }}
+        <span itemprop="datePublished">
+          {{- $year -}}
+        </span>
+      {{- end }}
+    {{- end }}
+    </span>
+    {{- with $currentPages -}}
+      {{- if eq $format "p" }}
+        ,<wbr>&#32;
+        {{- $formattedPages := (printf "p.&nbsp;%s" .) | safeHTML }}
+        {{- if (findRE "-" .) -}}{{/* If `$pages` contains a dash */}}
+          {{- $formattedPages = (printf "pp.&nbsp;%s" .) | safeHTML }}
+        {{- end }}
+        <span style="white-space: nowrap;">{{- $formattedPages -}}</span>
+      {{- else }}
+        :<wbr>&#32;<span style="white-space: nowrap;">{{- . -}}</span>
+      {{- end }}
+    {{- end }}
+  </a>
+  {{- /* Eliminate space between css-hidden citation hover block */ -}}
+  <span class="hugo-cite-citation">{{ partial $partialPath $reference }}</span>
+</span>
