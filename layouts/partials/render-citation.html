@@ -26,7 +26,7 @@
         </span>
       {{- else }}
         {{- $authorLen := len $displayAuthors }}
-        {{- range $authorIndex, $author := first 2 $displayAuthors }}
+        {{- range $authorIndex, $author := first 1 $displayAuthors }}
           <span itemprop="author" itemscope itemtype="https://schema.org/Person">
             {{- with $author.given }}
               <meta itemprop="givenName" content="{{ . }}">
