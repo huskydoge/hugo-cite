@@ -33,7 +33,7 @@
 {{- with .page -}}, {{ . }}{{- end -}}.
 
 {{- if .DOI -}}
- https://doi.org/{{ .DOI }}
+ <a href="https://doi.org/{{ .DOI }}" target="_blank">https://doi.org/{{ .DOI }}</a>
 {{- else if .URL -}}
- {{ i18n "apa_retrieved_from" | default "Retrieved from" }} {{ .URL }}
+ {{ i18n "apa_retrieved_from" | default "Retrieved from" }} <a href="{{ .URL }}" target="_blank">{{ .URL }}</a>
 {{- end -}}

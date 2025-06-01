@@ -3,7 +3,7 @@
 {{- $title := .Page.Params.title | default "Untitled" -}}
 {{- $dateParam := .Page.Params.date | default .Page.Date -}}
 {{- $journal := .Page.Params.journal | default "Unknown Journal" -}}
-{{- $url := .Site.BaseURL | default "" -}}
+{{- $url := .Site.Params.BaseURL | default "" -}}
 {{- $relativeURL := .RelPermalink -}}
 {{- $fullURL := printf "%s%s" $url (strings.TrimPrefix "/" $relativeURL) -}}
 
