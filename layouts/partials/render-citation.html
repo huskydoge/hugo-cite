@@ -12,10 +12,32 @@
 {{- end }}
 {{- /* Add to the collection of cited references */}}
 {{- $.Page.Scratch.SetInMap "citedBib" $key $reference -}}
+{{- /* Maintain order and numbering for IEEE style */ -}}
+{{- $citationNumber := 0 -}}
+{{- if eq site.Params.citationStyle "ieee" -}}
+  {{- $order := $.Page.Scratch.Get "citedOrder" | default (slice) -}}
+  {{- $numMap := $.Page.Scratch.Get "citedNum" | default dict -}}
+  {{- $num := 0 -}}
+  {{- if $numMap -}}
+    {{- with index $numMap $key -}}
+      {{- $num = . -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if eq $num 0 -}}
+    {{- $next := add (len $order) 1 -}}
+    {{- $.Page.Scratch.SetInMap "citedNum" $key $next -}}
+    {{- $order = $order | append $key -}}
+    {{- $.Page.Scratch.Set "citedOrder" $order -}}
+    {{- $num = $next -}}
+  {{- end -}}
+  {{- $citationNumber = $num -}}
+{{- end -}}
 <span class="hugo-cite-group" style="display: inline-block; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
   <a href="#{{ $key | urlize }}" style="text-decoration: none; border-bottom: 1px dotted #ccc;">
     <span class="visually-hidden">Citation: </span>
-    {{- if not $suppressAuthor -}}
+    {{- if eq site.Params.citationStyle "ieee" -}}
+      [{{- $citationNumber -}}]
+    {{- else if not $suppressAuthor -}}
       {{- $displayAuthors := $reference.author -}}
       {{- if not $reference.author }}
         {{- $displayAuthors = $reference.editor -}}
@@ -46,30 +68,32 @@
       {{- end }}
       {{- if eq $format "p" }},<wbr>&#32;{{- else }}<wbr>&#32;{{- end }}
     {{- end }}
-    {{- /* Year */}}
-    <span style="white-space: nowrap;">
-    {{- if and (isset $reference "issued") (isset $reference.issued "date-parts") -}}
-      {{- $dateParts := index $reference.issued "date-parts" }}
-      {{- if gt (len $dateParts) 0 }}
-        {{- $year := index (index $dateParts 0) 0 }}
-        <span itemprop="datePublished">
-          {{- $year -}}
-        </span>
-      {{- end }}
-    {{- end }}
-    </span>
-    {{- with $currentPages -}}
-      {{- if eq $format "p" }}
-        ,<wbr>&#32;
-        {{- $formattedPages := (printf "p.&nbsp;%s" .) | safeHTML }}
-        {{- if (findRE "-" .) -}}{{/* If `$pages` contains a dash */}}
-          {{- $formattedPages = (printf "pp.&nbsp;%s" .) | safeHTML }}
+    {{- if ne site.Params.citationStyle "ieee" -}}
+      {{- /* Year */}}
+      <span style="white-space: nowrap;">
+      {{- if and (isset $reference "issued") (isset $reference.issued "date-parts") -}}
+        {{- $dateParts := index $reference.issued "date-parts" }}
+        {{- if gt (len $dateParts) 0 }}
+          {{- $year := index (index $dateParts 0) 0 }}
+          <span itemprop="datePublished">
+            {{- $year -}}
+          </span>
         {{- end }}
-        <span style="white-space: nowrap;">{{- $formattedPages -}}</span>
-      {{- else }}
-        :<wbr>&#32;<span style="white-space: nowrap;">{{- . -}}</span>
       {{- end }}
-    {{- end }}
+      </span>
+      {{- with $currentPages -}}
+        {{- if eq $format "p" }}
+          ,<wbr>&#32;
+          {{- $formattedPages := (printf "p.&nbsp;%s" .) | safeHTML }}
+          {{- if (findRE "-" .) -}}{{/* If `$pages` contains a dash */}}
+            {{- $formattedPages = (printf "pp.&nbsp;%s" .) | safeHTML }}
+          {{- end }}
+          <span style="white-space: nowrap;">{{- $formattedPages -}}</span>
+        {{- else }}
+          :<wbr>&#32;<span style="white-space: nowrap;">{{- . -}}</span>
+        {{- end }}
+      {{- end }}
+    {{- end -}}
   </a>
   {{- /* Eliminate space between css-hidden citation hover block */ -}}
   <span class="hugo-cite-citation">{{ partial $partialPath $reference }}</span>

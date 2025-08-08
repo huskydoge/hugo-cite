@@ -1,7 +1,7 @@
 {{/* -------------------- 1. BEGIN CITATION STYLE BLOCK -------------------- */}}
 {{- $citationStyle := "apa" }}
-{{- if $.Site.Params.citationStyle }}
-{{- $citationStyle = $.Site.Params.citationStyle }}
+{{- if site.Params.citationStyle }}
+{{- $citationStyle = site.Params.citationStyle }}
 {{- end }}
 
 {{- if not (templates.Exists (printf "partials/bibliography/%s-style.html" $citationStyle)) }}
@@ -16,14 +16,53 @@
 <section class="hugo-cite-bibliography">
   <ul style="list-style-type: none; padding-left: 0; font-size: 0.9em;">
     {{/* -------------------- BEGIN RANGE BIBLIOGRAPHY -------------------- */}}
-    {{- $counter := 0 -}}
-    {{- range $refIndex, $currentRef := $references -}}
-      {{- $counter = add $counter 1 -}}
-      {{- $partialPath := string (printf "bibliography/%s-style.html" $citationStyle) }}
-      <li id="{{ $currentRef.id | urlize }}">
-        <span>[{{ $counter }}] </span>
-        {{- partial $partialPath $currentRef -}}
-      </li>
+    {{- $partialPath := string (printf "bibliography/%s-style.html" $citationStyle) }}
+    {{- if eq $citationStyle "ieee" -}}
+      {{- $order := false -}}
+      {{- $numMap := false -}}
+      {{- with .Page }}
+        {{- $order = .Scratch.Get "citedOrder" -}}
+        {{- $numMap = .Scratch.Get "citedNum" -}}
+      {{- end }}
+      {{- if and $order (gt (len $order) 0) -}}
+        {{- /* Build a map of id -> reference for quick lookup (handles slice or map) */ -}}
+        {{- $refMap := dict -}}
+        {{- range $k, $v := $references -}}
+          {{- if (isset $v "id") -}}
+            {{- $refMap = merge $refMap (dict $v.id $v) -}}
+          {{- else -}}
+            {{- /* If already map with key as id */ -}}
+            {{- $refMap = merge $refMap (dict $k $v) -}}
+          {{- end -}}
+        {{- end -}}
+        {{- range $i, $key := $order -}}
+          {{- $currentRef := index $refMap $key -}}
+          {{- if $currentRef -}}
+          <li id="{{ $currentRef.id | urlize }}">
+            <span>[{{ index $numMap $key }}] </span>
+            {{- partial $partialPath $currentRef -}}
+          </li>
+          {{- end -}}
+        {{- end -}}
+      {{- else -}}
+        {{- $counter := 0 -}}
+        {{- range $refIndex, $currentRef := $references -}}
+          {{- $counter = add $counter 1 -}}
+          <li id="{{ $currentRef.id | urlize }}">
+            <span>[{{ $counter }}] </span>
+            {{- partial $partialPath $currentRef -}}
+          </li>
+        {{- end -}}
+      {{- end -}}
+    {{- else -}}
+      {{- $counter := 0 -}}
+      {{- range $refIndex, $currentRef := $references -}}
+        {{- $counter = add $counter 1 -}}
+        <li id="{{ $currentRef.id | urlize }}">
+          <span>[{{ $counter }}] </span>
+          {{- partial $partialPath $currentRef -}}
+        </li>
+      {{- end -}}
     {{- end -}}
     {{/* -------------------- END RANGE BIBLIOGRAPHY -------------------- */}}
   </ul>

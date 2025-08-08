@@ -102,6 +102,26 @@
       {{- end }}
     </span> {{/* Add a space after the citation */}}&#32;
   {{- else }}
+  {{- if eq site.Params.citationStyle "ieee" -}}
+  <span class="hugo-cite-intext" itemprop="citation">
+      {{- range $keyIndex, $key := $keys -}}
+        {{- $found := false -}}
+        {{- range $reference := $bibliography -}}
+          {{- if eq $reference.id $key -}}
+            {{- $found = true -}}
+            {{- $params := dict "key" $key "keyIndex" $keyIndex "reference" $reference "suppressAuthor" false "format" $format "pages" $pages "partialPath" $partialPath "Page" $.Page }}
+            {{- partial "render-citation.html" $params }}
+            {{- if lt (add 1 $keyIndex) $totalRefs -}};&#32;{{- end }}
+            {{- break -}}
+          {{- end }}
+        {{- end }}
+        {{- if not $found -}}
+          {{- $particularKeyErr := printf $defaultErrString $key -}}
+          <span style="background-color: #f00; color: #fff;">{{- $particularKeyErr -}}</span>
+        {{- end }}
+      {{- end }}
+    </span>
+  {{- else -}}
   (<span class="hugo-cite-intext" itemprop="citation">
       {{- range $keyIndex, $key := $keys -}}
         {{- $found := false -}}
@@ -120,6 +140,7 @@
         {{- end }}
       {{- end }}
     </span>)
+  {{- end -}}
   {{- end }}
 {{- else }}
   {{- errorf "No bibliography file specified or found." }}
