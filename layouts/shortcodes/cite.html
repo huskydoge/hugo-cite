@@ -28,7 +28,7 @@
   {{- errorf $errorMissingValue }}
 {{- end }}
 {{- $pagesRaw := .Get "pages" | default (.Get 1) | default "" }}
-{{- $format := .Get "format" | default (.Get 2) | default "p" }}
+{{- $format := .Get "format" | default (.Get 2) | default "t" }}
 {{- $suppressAuthor := .Get "suppressAuthor" | default false }}
 {{- $keySeparator := ";" }}
 
