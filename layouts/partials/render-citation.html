@@ -97,4 +97,4 @@
   </a>
   {{- /* Eliminate space between css-hidden citation hover block */ -}}
   <span class="hugo-cite-citation">{{ partial $partialPath $reference }}</span>
-</span>
+</span>{{- if eq site.Params.citationStyle "ieee" -}}&#32;{{- end -}}

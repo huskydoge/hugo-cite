@@ -104,23 +104,55 @@
   {{- else }}
   {{- if eq site.Params.citationStyle "ieee" -}}
   <span class="hugo-cite-intext" itemprop="citation">
-      {{- range $keyIndex, $key := $keys -}}
-        {{- $found := false -}}
-        {{- range $reference := $bibliography -}}
-          {{- if eq $reference.id $key -}}
-            {{- $found = true -}}
-            {{- $params := dict "key" $key "keyIndex" $keyIndex "reference" $reference "suppressAuthor" false "format" $format "pages" $pages "partialPath" $partialPath "Page" $.Page }}
-            {{- partial "render-citation.html" $params }}
-            {{- if lt (add 1 $keyIndex) $totalRefs -}};&#32;{{- end }}
-            {{- break -}}
-          {{- end }}
-        {{- end }}
-        {{- if not $found -}}
-          {{- $particularKeyErr := printf $defaultErrString $key -}}
-          <span style="background-color: #f00; color: #fff;">{{- $particularKeyErr -}}</span>
+    {{- $citationNumbers := slice -}}
+    {{- $allReferences := slice -}}
+    {{- range $keyIndex, $key := $keys -}}
+      {{- $found := false -}}
+      {{- range $reference := $bibliography -}}
+        {{- if eq $reference.id $key -}}
+          {{- $found = true -}}
+          {{- /* Get citation number for this key */ -}}
+          {{- $.Page.Scratch.SetInMap "citedBib" $key $reference -}}
+          {{- $order := $.Page.Scratch.Get "citedOrder" | default (slice) -}}
+          {{- $numMap := $.Page.Scratch.Get "citedNum" | default dict -}}
+          {{- $num := 0 -}}
+          {{- if $numMap -}}
+            {{- with index $numMap $key -}}
+              {{- $num = . -}}
+            {{- end -}}
+          {{- end -}}
+          {{- if eq $num 0 -}}
+            {{- $next := add (len $order) 1 -}}
+            {{- $.Page.Scratch.SetInMap "citedNum" $key $next -}}
+            {{- $order = $order | append $key -}}
+            {{- $.Page.Scratch.Set "citedOrder" $order -}}
+            {{- $num = $next -}}
+          {{- end -}}
+          {{- $citationNumbers = $citationNumbers | append $num -}}
+          {{- $allReferences = $allReferences | append $reference -}}
+          {{- break -}}
         {{- end }}
       {{- end }}
+      {{- if not $found -}}
+        {{- $particularKeyErr := printf $defaultErrString $key -}}
+        <span style="background-color: #f00; color: #fff;">{{- $particularKeyErr -}}</span>
+      {{- end }}
+    {{- end }}
+    {{- /* Create a single hover container for multiple citations */ -}}
+    <span class="hugo-cite-group" style="display: inline-block;">
+      <a href="#" style="text-decoration: none; border-bottom: 1px dotted #ccc;">
+        [{{- range $index, $num := $citationNumbers -}}
+          {{- if $index }}, {{ end -}}{{- $num -}}
+        {{- end -}}]
+      </a>
+      <span class="hugo-cite-citation">
+        {{- range $index, $reference := $allReferences -}}
+          {{- if $index }}<br><br>{{ end -}}
+          {{- partial $partialPath $reference -}}
+        {{- end -}}
+      </span>
     </span>
+  </span>&#32;
   {{- else -}}
   (<span class="hugo-cite-intext" itemprop="citation">
       {{- range $keyIndex, $key := $keys -}}
