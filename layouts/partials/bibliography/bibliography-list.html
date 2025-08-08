@@ -13,8 +13,12 @@
 {{- $references := .references }}
 
 {{ if $references }}
+<!-- Gray divider line above References -->
+<div class="references-divider"></div>
+
 <section class="hugo-cite-bibliography">
-  <ul style="list-style-type: none; padding-left: 0; font-size: 0.9em;">
+  <h3 class="references-title">References</h3>
+  <div class="references-grid">
     {{/* -------------------- BEGIN RANGE BIBLIOGRAPHY -------------------- */}}
     {{- $partialPath := string (printf "bibliography/%s-style.html" $citationStyle) }}
     {{- if eq $citationStyle "ieee" -}}
@@ -38,34 +42,40 @@
         {{- range $i, $key := $order -}}
           {{- $currentRef := index $refMap $key -}}
           {{- if $currentRef -}}
-          <li id="{{ $currentRef.id | urlize }}">
-            <span>[{{ index $numMap $key }}] </span>
-            {{- partial $partialPath $currentRef -}}
-          </li>
+          <div class="reference-item" id="{{ $currentRef.id | urlize }}">
+            <span class="reference-number">[{{ index $numMap $key }}]</span>
+            <div class="reference-content">
+              {{- partial $partialPath $currentRef -}}
+            </div>
+          </div>
           {{- end -}}
         {{- end -}}
       {{- else -}}
         {{- $counter := 0 -}}
         {{- range $refIndex, $currentRef := $references -}}
           {{- $counter = add $counter 1 -}}
-          <li id="{{ $currentRef.id | urlize }}">
-            <span>[{{ $counter }}] </span>
-            {{- partial $partialPath $currentRef -}}
-          </li>
+          <div class="reference-item" id="{{ $currentRef.id | urlize }}">
+            <span class="reference-number">[{{ $counter }}]</span>
+            <div class="reference-content">
+              {{- partial $partialPath $currentRef -}}
+            </div>
+          </div>
         {{- end -}}
       {{- end -}}
     {{- else -}}
       {{- $counter := 0 -}}
       {{- range $refIndex, $currentRef := $references -}}
         {{- $counter = add $counter 1 -}}
-        <li id="{{ $currentRef.id | urlize }}">
-          <span>[{{ $counter }}] </span>
-          {{- partial $partialPath $currentRef -}}
-        </li>
+        <div class="reference-item" id="{{ $currentRef.id | urlize }}">
+          <span class="reference-number">[{{ $counter }}]</span>
+          <div class="reference-content">
+            {{- partial $partialPath $currentRef -}}
+          </div>
+        </div>
       {{- end -}}
     {{- end -}}
     {{/* -------------------- END RANGE BIBLIOGRAPHY -------------------- */}}
-  </ul>
+  </div>
 </section>
 {{- else }}
 {{ printf "Bibliography called, but no references" }}
